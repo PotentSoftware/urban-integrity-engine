@@ -1,0 +1,14 @@
+[package]
+name = "urban-integrity-schema"
+license = "Apache-2.0 OR AGPL-3.0-or-later"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+[dev-dependencies]
+surrealdb = { workspace = true }

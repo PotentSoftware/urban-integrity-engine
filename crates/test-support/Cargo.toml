@@ -1,0 +1,18 @@
+[package]
+name = "urban-integrity-test-support"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Shared SurrealDB test harness — one throwaway namespace per test, removed on teardown."
+
+[dependencies]
+urban-integrity-schema = { path = "../schema" }
+surrealdb = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+# Normal (not dev) deps: the planted fixture and the `graph_events` writer are library code,
+# compiled into every consumer, not just this crate's own tests.
+chrono = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }

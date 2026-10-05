@@ -1,0 +1,36 @@
+[package]
+name = "urban-integrity-ingestor"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+urban-integrity-schema = { path = "../schema" }
+urban-integrity-core = { path = "../core" }
+reqwest = { version = "0.12", features = ["stream", "json"] }
+tokio-util = { version = "0.7", features = ["io"] }
+futures = "0.3"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }
+async-trait = "0.1"
+surrealdb = { workspace = true }
+regex = "1"
+scraper = "0.21"
+
+[dev-dependencies]
+urban-integrity-test-support = { path = "../test-support" }
+urban-integrity-core = { path = "../core" }
+urban-integrity-schema = { path = "../schema" }
+tokio = { workspace = true, features = ["full"] }
+# Dev-only, and deliberately a dependency CYCLE (cli -> ingestor -> [dev] cli): the D-14
+# purge scan/delete this crate's projector_ocod_owner_merge test drives lives in the CLI,
+# and duplicating it here would let the test pass against a copy that has drifted from the
+# shipped one. Cargo permits cycles through dev-dependencies specifically because of this
+# case; it does not affect the normal build graph.
+urban-integrity-cli = { path = "../cli" }

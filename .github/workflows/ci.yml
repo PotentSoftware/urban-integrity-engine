@@ -1,0 +1,202 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  # Drop debug info in CI. The enricher test binary statically links the entire
+  # surrealdb-core + crypto + geo dep tree; with full debuginfo the link exhausts
+  # the standard runner's memory and the linker dies with a SIGBUS. Tests only need
+  # pass/fail, not symbols — this roughly halves link memory and speeds the build.
+  RUSTFLAGS: "-C debuginfo=0"
+  # Cap per-binary test parallelism. The CLI integration tests each spawn a CLI
+  # subprocess that connects to SurrealDB; on the 2-core runner, too many at once
+  # contend on the shared instance and one can flake (non-zero exit). 2 keeps the
+  # runner busy without hammering the DB.
+  RUST_TEST_THREADS: "2"
+
+jobs:
+  test:
+    name: Build + full suite (incl. SurrealDB integration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # tonic-build (crates/api/build.rs) compiles proto/integrity.proto, which
+      # requires the protobuf compiler at build time.
+      - name: Install protoc
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      # Honour the version pinned in rust-toolchain.toml rather than tracking a
+      # drifting `stable`, so CI's clippy/rustc matches local dev exactly.
+      # `rustup show` triggers rustup's auto-install of the pinned toolchain
+      # (and its components) when run inside the workspace.
+      - name: Install pinned Rust toolchain
+        run: rustup show
+
+      - name: Cache cargo registry + build
+        uses: Swatinem/rust-cache@v2
+
+      # Pinned to the SDK version in workspace deps (=3.1.0-beta.2). The DB-gated
+      # tests connect to ws://localhost:8000 with root/root. Storage is the action's
+      # default in-memory engine — fine for the suite, which seeds tiny fixtures in
+      # throwaway per-test namespaces (test_<uuid>); the dev/prod engine is RocksDB.
+      - name: Start SurrealDB
+        uses: surrealdb/setup-surreal@v2
+        with:
+          surrealdb_version: v3.1.0-beta.2
+          surrealdb_port: 8000
+          surrealdb_username: root
+          surrealdb_password: root
+          # The action defaults this to false, which passes `--unauthenticated` and makes the
+          # server accept every request as root regardless of credentials. Local dev runs
+          # auth-on (scripts/surreal-start.sh), so the two diverged on exactly the behaviour
+          # some tests exist to check: `db_query_recovers_from_a_dead_session` invalidates a
+          # session and asserts the raw connection then fails, and the ch_psc/ch_disqualified
+          # "no signin" regressions assert a write is refused. Under --unauthenticated none of
+          # those can fail for the reason claimed. Keep CI's auth posture matching local.
+          surrealdb_auth: true
+
+      - name: Build workspace
+        run: cargo build --workspace
+
+      # Apply the schema to the CLI's default namespace ONCE before the test run.
+      # connect_db() applies SCHEMA_DEF on every connect; without this, the many CLI
+      # subprocess tests race to run the same DDL on the fresh DB, which can throw a
+      # transaction conflict and fail a test. Pre-seeding makes those DEFINEs no-ops.
+      - name: Pre-initialise SurrealDB schema
+        env:
+          URBAN_DB_TESTS: "1"
+        run: cargo run -p urban-integrity-cli -- status
+
+      # URBAN_DB_TESTS=1 runs the ~30 SurrealDB integration tests in addition to the
+      # default unit suite. These are gated and not covered by a plain `cargo test`,
+      # so they only get exercised here — keeping them from rotting (see history:
+      # several gated tests had silently broken because nothing ran them).
+      # Live external tests (URBAN_LIVE_TESTS) are intentionally NOT run here: they
+      # hit third-party APIs and need a Companies House REST key as a secret.
+      - name: Run full suite (DB-gated)
+        env:
+          URBAN_DB_TESTS: "1"
+        run: cargo test --workspace
+
+  lint:
+    name: rustfmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # clippy compiles the workspace, and crates/api/build.rs needs protoc.
+      - name: Install protoc
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      # rust-toolchain.toml pins the version and lists rustfmt + clippy as
+      # components; `rustup show` auto-installs them inside the workspace.
+      - name: Install pinned Rust toolchain
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format check
+        run: cargo fmt --all --check
+
+      # -D warnings makes any clippy lint a hard failure. The workspace is clean as of
+      # this commit; keep it that way (fix or #[allow] with justification).
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  wasm-build:
+    name: Wasm frontend build + boundary guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # rust-toolchain.toml pins wasm32-unknown-unknown as a target (Phase 42, WBX-08);
+      # `rustup show` auto-installs it inside the workspace the same way it does
+      # components, so no separate "add target" step is needed here.
+      - name: Install pinned Rust toolchain (incl. wasm32 target)
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Pinned per the phase 42 research notes' Package Legitimacy Audit (trunk: OK, no flags).
+      # cargo-binstall is preinstalled on recent ubuntu-latest runner images, but that
+      # is not guaranteed (A4's flagged risk) — fall back to a locked source install
+      # rather than let the step fail outright if binstall is missing.
+      - name: Install Trunk (pinned)
+        run: cargo binstall trunk --version 0.21.14 --no-confirm || cargo install --locked trunk --version 0.21.14
+
+      # Builds only the crates that are wasm-safe by construction (the DTO crate and,
+      # once plan 42-04 lands, the frontend crate). Compiling for the real wasm32
+      # target — not just the native `--workspace` build — is what actually proves
+      # wasm-safety; the workbench-web crate does not exist until plan 42-04, so this
+      # step is expected to fail until then (linear build-up within this phase, not a
+      # defect in this plan).
+      - name: Build DTO + frontend crates for wasm32-unknown-unknown
+        run: cargo build --target wasm32-unknown-unknown -p urban-integrity-workbench-dto -p urban-integrity-workbench-web
+
+      # Forbidden-dependency guard (WBX-03) — fails if surrealdb/tokio/petgraph/rayon
+      # or crates/schema|core|detector enter the wasm32 dependency graph of a
+      # workbench-facing crate.
+      - name: Forbidden-dependency guard (WBX-03)
+        run: scripts/check-wasm-boundary.sh urban-integrity-workbench-dto urban-integrity-workbench-web
+
+      # Deserialize-on-verdict-type guard (WBX-04) — fails if Deserialize reappears on
+      # crates/schema's verdict type, or on a bare-named verdict-domain type in a
+      # workbench crate.
+      - name: Deserialize-on-verdict-type guard (WBX-04)
+        run: scripts/check-verdict-deserialize.sh
+
+      # No-Anglesey-literals guard (D-10 amended) — fails if an analysis-specific
+      # string leaks into workbench source. crates/workbench/src does not exist until
+      # plan 42-05 lands; the script skips gracefully until then.
+      - name: No-Anglesey-literals guard (D-10)
+        run: scripts/check-no-analysis-literals.sh
+
+      # Test-fixture containment guard — fails if `workbench_from_graph`, the
+      # `#[doc(hidden)]` planted-graph assembler that fabricates a population without
+      # touching SurrealDB, is referenced outside its own definition, the workbench/CLI
+      # test trees, and prose.
+      - name: Test-fixture containment guard
+        run: scripts/check-fixture-not-shipped.sh
+
+      # Abbreviation glossary guard (NAV-04, D-04) — fails if a workbench-web string
+      # literal contains an unexpanded 2-6 letter all-caps abbreviation that is
+      # neither defined in docs/abbreviations.md's glossary sections nor listed in
+      # scripts/abbreviations-allowlist.txt.
+      - name: Abbreviation glossary guard (NAV-04)
+        run: scripts/check-abbreviations.sh
+
+      # Cosmograph shim source/bundle drift guard. crates/workbench-web/js/cosmograph-shim.js
+      # is the VENDORED bundle the `#[wasm_bindgen(module = ...)]` bindings load; the source
+      # that generates it, js-build/cosmograph-shim-src.js, is never consumed at Cargo build
+      # time — so the two drifted silently for eight days (four features plus two of
+      # `mountGraph`'s parameters existed ONLY in the bundle, and running the documented
+      # `npm run build` would have reverted all of them). The script rebuilds the source and
+      # compares the shim sections; node_modules is gitignored, hence the npm ci above it.
+      # SHIM_DRIFT_STRICT=1 makes a missing toolchain a failure rather than a skip — a guard
+      # that can only ever pass is how this drift survived in the first place.
+      - name: Install Node (for the shim drift guard)
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: crates/workbench-web/js-build/package-lock.json
+
+      - name: Install shim build dependencies
+        run: npm ci
+        working-directory: crates/workbench-web/js-build
+
+      - name: Cosmograph shim/source drift guard
+        run: scripts/check-shim-drift.sh
+        env:
+          SHIM_DRIFT_STRICT: '1'
+
+      # Drift check — dist/ is never committed, so this proves the frontend actually
+      # builds with Trunk, not just that `cargo build` alone succeeds. Only passes
+      # once plan 42-04 lands (crates/workbench-web with a Trunk.toml/index.html).
+      - name: Trunk build (drift check)
+        run: cd crates/workbench-web && trunk build --release

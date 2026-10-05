@@ -1,0 +1,54 @@
+syntax = "proto3";
+package urban_integrity;
+
+// IntegrityService — primary gRPC API for the UrbanIntegrity engine.
+// Designed for Gemma4/Ollama integration and structured programmatic access.
+service IntegrityService {
+  // Query alerts with optional filters (score, ward, motif type, date range)
+  rpc QueryAlerts(AlertFilter) returns (AlertList);
+  // Get a single alert by ID
+  rpc GetAlert(AlertId) returns (Alert);
+  // Summarise an alert using the local Gemma4 LLM via Ollama (graceful error if unavailable)
+  rpc SummarizeAlert(AlertId) returns (AlertSummary);
+  // Return current graph engine statistics (node count, edge count, snapshot event)
+  rpc GetGraphStats(Empty) returns (GraphStats);
+}
+
+message AlertFilter {
+  optional float min_score = 1;
+  optional string ward_code = 2;
+  optional string motif_type = 3;
+  optional string from_date = 4;
+  optional string to_date = 5;
+  int32 limit = 6;
+}
+
+message Alert {
+  string id = 1;
+  string motif_type = 2;
+  float score = 3;
+  string result_json = 4;
+  uint64 detected_at = 5;
+  optional string ward_code = 6;
+}
+
+message AlertList {
+  repeated Alert alerts = 1;
+}
+
+message AlertId {
+  string id = 1;
+}
+
+message AlertSummary {
+  string text = 1;
+  string model = 2;
+}
+
+message GraphStats {
+  uint64 node_count = 1;
+  uint64 edge_count = 2;
+  uint64 last_snapshot_event = 3;
+}
+
+message Empty {}

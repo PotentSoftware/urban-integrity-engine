@@ -1,0 +1,48 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/schema",
+    "crates/detector",
+    "crates/core",
+    "crates/ingestor",
+    "crates/stats",
+    "crates/api",
+    "crates/cli",
+    "crates/enricher",
+    "crates/probe",
+    "crates/test-support",
+    "crates/workbench-dto",
+    "crates/workbench",
+    "crates/workbench-web"
+]
+
+[workspace.package]
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/REPLACE-ME/urban-integrity"
+authors = ["UrbanIntegrity contributors"]
+edition = "2021"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+sha2 = "0.10"
+config = "0.14"
+dotenv = "0.15"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing = "0.1"
+surrealdb = { version = "=3.1.0-beta.2", features = ["protocol-ws", "protocol-http"] }
+dashmap = { version = "6", features = ["serde"] }
+arc-swap = "1"
+crossbeam-channel = "0.5"
+bincode = "1"
+rayon = "1"
+parking_lot = "0.12"
+petgraph = { version = "0.6", features = ["serde-1"] }
+criterion = "0.5"
+fxhash = "0.2"
+smallvec = { version = "1.13", features = ["serde"] }

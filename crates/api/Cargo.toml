@@ -1,0 +1,52 @@
+[package]
+name = "urban-integrity-api"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+urban-integrity-schema = { path = "../schema" }
+urban-integrity-core = { path = "../core" }
+urban-integrity-stats = { path = "../stats" }
+urban-integrity-detector = { path = "../detector" }
+
+# gRPC
+tonic = { version = "0.12", features = ["transport"] }
+prost = "0.13"
+async-trait = "0.1"
+
+# GraphQL (used in plan 05-03)
+async-graphql = { version = "7", features = ["dataloader", "boxed-trait"] }
+async-graphql-axum = "7"
+
+# HTTP server
+axum = { version = "0.8", features = ["macros"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors"] }
+
+# HTTP client for Ollama
+reqwest = { version = "0.12", features = ["json"] }
+
+# Async runtime & utils
+futures = "0.3"
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+arc-swap = { workspace = true }
+surrealdb = { workspace = true }
+
+[build-dependencies]
+tonic-build = "0.12"
+
+[dev-dependencies]
+urban-integrity-ingestor = { path = "../ingestor" }
+urban-integrity-test-support = { path = "../test-support" }
+uuid = { workspace = true }
+reqwest = { version = "0.12", features = ["json"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros", "time"] }
+async-graphql-axum = "7"

@@ -1,0 +1,56 @@
+[Unit]
+Description=UrbanIntegrity demo — SurrealDB (fixture corpus only)
+Documentation=file:///opt/urban-demo/README
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=urbandemo
+Group=urbandemo
+WorkingDirectory=/opt/urban-demo
+
+# Credentials come from the env file, never from config.toml and never root/root.
+# 0600, owned by root, readable only via systemd's own credential load.
+EnvironmentFile=/etc/urban-demo/surreal.env
+
+# --bind 127.0.0.1 is load-bearing. SurrealDB has no business being reachable from
+# the internet; Caddy is the only ingress and it never proxies to :8000.
+ExecStart=/opt/urban-demo/bin/surreal start \
+    --user ${SURREAL_USER} --pass ${SURREAL_PASS} \
+    --bind 127.0.0.1:8000 \
+    rocksdb:///opt/urban-demo/data/surreal-rocks.db
+
+Restart=on-failure
+RestartSec=5
+
+# Memory discipline. The demo box is 8GB; the fixture corpus is trivially small, so
+# 3G is generous. The cap exists because RocksDB's block cache will grow to fill
+# whatever it is given and an unbounded SurrealDB on a small VPS livelocks the box
+# in reclaim rather than being OOM-killed cleanly (observed on the 31GB dev host,
+# 2026-09-13). OOMPolicy=stop means the cgroup killer reaps surreal alone.
+MemoryHigh=2G
+MemoryMax=3G
+MemorySwapMax=512M
+OOMPolicy=stop
+
+# Hardening. This process needs one directory and one loopback port.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadWritePaths=/opt/urban-demo/data
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

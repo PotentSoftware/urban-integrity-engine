@@ -1,0 +1,58 @@
+[package]
+name = "urban-integrity-workbench-web"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# The Leptos 0.8 CSR frontend for the analyst workbench (Phase 42, WBX-01/WBX-03/WBX-08).
+#
+# Dependency discipline (D-01/D-02, CI-enforced by scripts/check-wasm-boundary.sh): this crate
+# depends ONLY on `urban-integrity-workbench-dto` plus the leptos/wasm-bindgen stack. It must
+# NEVER gain a dependency on `urban-integrity-schema`, `urban-integrity-core`,
+# `urban-integrity-detector`, `surrealdb`, `tokio`, `petgraph`, or `rayon` — the wasm-build CI
+# job builds this crate for `wasm32-unknown-unknown` and the forbidden-dependency guard fails
+# the build if any of those crates enter the dependency graph.
+
+[dependencies]
+urban-integrity-workbench-dto = { path = "../workbench-dto" }
+leptos = { version = "0.8", features = ["csr"] }
+leptos_router = "0.8"
+wasm-bindgen = "0.2"
+# Awaits the Cosmograph shim's `mountSpike` Promise so a rejected mount reaches Rust instead
+# of dying as an unhandled rejection (cosmograph_spike.rs).
+wasm-bindgen-futures = "0.4"
+# Exactly the APIs this crate calls (Phase 42 code review, IN-04) — declared here rather than
+# relied on through leptos's transitive feature unification:
+#   Window          - `web_sys::window()` (app.rs, theme.rs)
+#   Storage         - `window.local_storage()` / `get_item` / `set_item` (theme.rs)
+#   MediaQueryList  - `window.match_media(..).matches()` (theme.rs)
+#   Document        - `window.document()` / `document_element()` (app.rs)
+#   Element         - `Element::set_class_name` (app.rs), the spike container (cosmograph_spike.rs)
+#   console         - `console::log_1` / `error_2` (cosmograph_spike.rs)
+#   Navigator       - `window.navigator()` (copy_button.rs, clipboard write)
+#   Clipboard       - `navigator.clipboard().write_text(...)` (copy_button.rs)
+#   Location        - `use_location()`/hash routing (Plan 07, breadcrumb.rs's current-path read)
+#   History         - hash routing (Plan 07) — added alongside Location so this Cargo.toml edit
+#                     happens once, in this plan, rather than being re-touched by a later wave-3
+#                     plan running in parallel with siblings that would otherwise conflict on the
+#                     same file
+# No `MediaQueryListEvent`: `Theme::System` re-resolves `matchMedia` on each `css_class()` call
+# and registers no `change` listener, so the event type is never named.
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Storage",
+    "MediaQueryList",
+    "Document",
+    "Element",
+    "console",
+    "Navigator",
+    "Clipboard",
+    "Location",
+    "History",
+] }
+js-sys = "0.3"
+console_error_panic_hook = "0.1"
+gloo-net = "0.6"
+serde = { workspace = true }
+serde_json = { workspace = true }

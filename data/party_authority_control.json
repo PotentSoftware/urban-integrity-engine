@@ -1,0 +1,70 @@
+{
+  "_meta": {
+    "source": "Open Council Data UK (opencouncildata.co.uk) — 2025 post-election",
+    "generated": "2026-06-08",
+    "update_cadence": "Annually after May local elections",
+    "note": "Party names normalised to match Electoral Commission register names. Known EC name variants: 'The Labour Party' -> 'Labour Party', 'Conservative and Unionist Party' -> 'Conservative Party', 'Liberal Democrat Party' -> 'Liberal Democrats'.",
+    "name_variants": {
+      "The Labour Party": "Labour Party",
+      "Conservative and Unionist Party": "Conservative Party",
+      "Liberal Democrat Party": "Liberal Democrats",
+      "UK Independence Party (UKIP)": "Reform UK",
+      "Green Party of England and Wales": "Green Party"
+    }
+  },
+  "Labour Party": [
+    "E06000001",
+    "E06000002",
+    "E06000003",
+    "E07000001",
+    "E07000002",
+    "E07000003",
+    "E07000004",
+    "E08000001",
+    "E08000002",
+    "E08000003",
+    "E08000004",
+    "E08000005",
+    "E08000006",
+    "E09000001",
+    "E09000002",
+    "E09000003",
+    "E09000004",
+    "E09000005"
+  ],
+  "Conservative Party": [
+    "E06000004",
+    "E06000005",
+    "E06000006",
+    "E07000005",
+    "E07000006",
+    "E07000007",
+    "E07000008",
+    "E07000009",
+    "E09000006",
+    "E09000007",
+    "E09000008",
+    "E09000009",
+    "E09000010",
+    "E09000011",
+    "E09000012"
+  ],
+  "Liberal Democrats": [
+    "E06000007",
+    "E06000008",
+    "E07000010",
+    "E07000011",
+    "E07000012",
+    "E09000013",
+    "E09000014"
+  ],
+  "Green Party": [
+    "E06000009",
+    "E07000013",
+    "E07000014"
+  ],
+  "Reform UK": [
+    "E07000015"
+  ],
+  "No Overall Control": []
+}

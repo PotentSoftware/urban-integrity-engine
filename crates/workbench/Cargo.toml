@@ -1,0 +1,72 @@
+[package]
+name = "urban-integrity-workbench"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+urban-integrity-workbench-dto = { path = "../workbench-dto" }
+urban-integrity-schema = { path = "../schema" }
+urban-integrity-core = { path = "../core" }
+urban-integrity-api = { path = "../api" }
+# The in-process probe battery (Phase 43 plan 05): `crates/workbench` calls
+# `urban_integrity_probe::run::execute` directly, the same path the CLI `probe` subcommand uses.
+# `urban-integrity-probe` has no dependency on `crates/cli` or `crates/workbench`, so this is not
+# a cycle.
+urban-integrity-probe = { path = "../probe" }
+# The canonical 8-MotifType taxonomy (Phase 46, plan 46-06): `crates/core` cannot depend on
+# `crates/detector` in production code (only `[dev-dependencies]` there), so the alert facet
+# list's detector enumeration and MotifKind-driven induced-subgraph dispatch live here instead —
+# a normal, non-dev dependency on an internal crate, no Package Legitimacy Gate applies.
+urban-integrity-detector = { path = "../detector" }
+serde_json = { workspace = true }
+
+# HTTP server (native-side glue; reuses crates/api's Router/schema). No `tower-http` here: the
+# TraceLayer is applied inside crates/api's `core_router`, which this crate merges onto — a
+# direct dependency was declared but never referenced (Phase 42 code review, IN-03).
+axum = { version = "0.8", features = ["macros"] }
+
+# Embedded static assets (Trunk dist/), served with rust-embed (D-14).
+#
+# `debug-embed`: embed at compile time in EVERY profile. Without it, rust-embed's default debug
+# path reads `dist/<path>` from the filesystem on every request (rust-embed-impl's
+# `#[cfg(debug_assertions)]` branch) — which made assets.rs's threat-model statement ("never a
+# filesystem read at request time", T-42-04) false for `cargo run` builds. The cost is that a
+# debug binary must be rebuilt after `scripts/build-workbench.sh` to pick up a new `dist/`,
+# exactly as a release binary already must.
+rust-embed = { version = "8.12", features = ["debug-embed"] }
+mime_guess = "2"
+
+chrono = { workspace = true }
+# `SearchQuery`/`NodeQuery` query-parameter DTOs for `graph/handlers.rs` (plan 44-08) — the crate
+# had only ever re-exported `serde::Deserialize` indirectly via other crates until this plan's
+# first handler-local query-param struct; already a workspace dependency, not a new package.
+serde = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+surrealdb = { workspace = true }
+# Population-scoping BFS (plan 44-02, GRA-06): re-implements the ward-reachability walk directly
+# against `CsrSnapshot` — never a dependency on `crates/cli`. Only new-crate-dependency edit this
+# plan makes to Cargo.toml; `graphrs`/`arrow` are added by plan 44-15 in a later wave.
+petgraph = { workspace = true }
+# Seeded Louvain community detection (plan 44-05, GRA-03) — native only, never added to
+# crates/workbench-web/Cargo.toml (scripts/check-wasm-boundary.sh enforces this mechanically).
+graphrs = "0.12"
+# Arrow IPC serialisation for the population export (plan 44-06, CNV-04) — native only, same
+# wasm-boundary rule as graphrs above.
+arrow = "59"
+
+[dev-dependencies]
+# Router-level test (Task 2, WBX-01): real HTTP requests against a fully assembled Router
+# bound to an ephemeral port, matching crates/api/tests/server.rs's own convention.
+reqwest = { version = "0.12", features = ["json"] }
+# Only the `#[cfg(test)]` modules inspect JSON bodies (boot.rs, verdict_conversion.rs); the
+# non-test code serialises exclusively through the DTO crate's own derives via axum's `Json`.
+serde_json = { workspace = true }
+# D-15's DB-gated equality proof (43-05 Task 3): NsGuard/db_tests_enabled, per the
+# mandatory test-namespace-hygiene rule.
+urban-integrity-test-support = { path = "../test-support" }
+# GRA-06's population-equality proof (plan 44-02 Task 2): a unique tmpfile name for the
+# export-graphml subprocess's --output, per test run.
+uuid = { workspace = true }

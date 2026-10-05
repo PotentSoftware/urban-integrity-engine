@@ -1,0 +1,242 @@
+/* tokens.css — the analyst workbench's vanilla-CSS design-token contract (D-11, WBX-08).
+ *
+ * No Tailwind runtime, no CDN stylesheet. Every later screen (Phases 43-48) inherits this file
+ * verbatim. Values carried verbatim from the analyst-workbench design mockup's
+ * <style> block (:root = dark default, .light = light override) per the phase 42 UI spec's Color table —
+ * only the token names/values are reused, not that mockup's hardcoded figures or pivot commands.
+ */
+
+:root {
+  --background: #0b0f19;
+  --card: #111827;
+  --card-hover: #1f293d;
+  --border: #1e293b;
+  --foreground: #f3f4f6;
+  --muted-foreground: #9ca3af;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --accent: #8b5cf6;
+  --destructive: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+
+  /* Identity-link confidence tier (the phase 45 UI spec "New tokens: identity-link confidence tier",
+   * PIV-03). Declared valueless in that document; pinned here as a NEUTRAL pair rather than as two
+   * new hues, because seven node hues, six edge hues and five semantic roles are already spoken
+   * for and a tier badge borrowing one would be mistakable for the thing that owns it — the
+   * checker's own finding. A human-confirmed link reads solid, an auto-established one reads
+   * quiet, and the word in the badge carries the rest. `pending_review` has no token by design
+   * (ENR-11) and `LinkTier` has no variant to build one from. */
+  --tier-confirmed: var(--foreground);
+  --tier-auto: var(--muted-foreground);
+
+  /* Spacing scale (the phase 42 UI spec "Spacing Scale") — multiples of 4, inherited by every screen. */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Node-kind categorical palette (the phase 44 UI spec "New tokens: node-kind categorical palette",
+   * D-15) — dark values (this file's default root). A dedicated palette, distinct from every
+   * semantic role above: never repurposed for verdict badges or CTAs, and vice versa. Seven
+   * swatches: six core NodeWeight kinds plus one shared swatch for the five OSINT-sourced kinds
+   * (PoliticalActor, Psc, Charity, OffshoreEntity, Disqualification) — see
+   * crates/workbench-web/src/node_palette.rs for the kind -> token mapping. */
+  --node-entity: #818cf8;
+  --node-officer: #22d3ee;
+  --node-location: #94a3b8;
+  --node-contract: #fb923c;
+  --node-ward: #2dd4bf;
+  --node-property: #f472b6;
+  --node-osint: #a3e635;
+
+  /* Edge-type categorical palette — dark values. Cosmograph cannot draw text on edges (the
+   * vendored bundle exposes no linkLabel* config key), so colour plus the canvas legend IS the
+   * edge labelling. Twelve EdgeWeight variants collapse into six families for the same
+   * legibility reason the node palette collapses eleven kinds into seven — see
+   * crates/workbench-web/src/edge_palette.rs for the type -> token mapping. */
+  --edge-control: #a78bfa;
+  --edge-award: #fbbf24;
+  --edge-risk: #f87171;
+  --edge-place: #67e8f9;
+  --edge-money: #4ade80;
+  --edge-property: #f9a8d4;
+}
+
+.light {
+  --background: #f8fafc;
+  --card: #ffffff;
+  --card-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --foreground: #0f172a;
+  --muted-foreground: #64748b;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --accent: #7c3aed;
+  --destructive: #dc2626;
+  --warning: #d97706;
+  --success: #059669;
+
+  /* Identity-link confidence tier, light values — the same neutral pair, resolved against this
+   * theme's own `--foreground`/`--muted-foreground`. */
+  --tier-confirmed: var(--foreground);
+  --tier-auto: var(--muted-foreground);
+
+  /* Node-kind categorical palette, light values (the phase 44 UI spec Color table). */
+  --node-entity: #4f46e5;
+  --node-officer: #0e7490;
+  --node-location: #64748b;
+  --node-contract: #c2410c;
+  --node-ward: #0f766e;
+  --node-property: #be185d;
+  --node-osint: #4d7c0f;
+
+  /* Edge-type categorical palette, light values. */
+  --edge-control: #6d28d9;
+  --edge-award: #b45309;
+  --edge-risk: #b91c1c;
+  --edge-place: #0e7490;
+  --edge-money: #15803d;
+  --edge-property: #9d174d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+}
+
+/* Numeric/monospace stack — counts, timestamps, entity ids, Coverage numbers (UI-SPEC "Design
+ * System" Font row). Every count on the status page and every verdict badge's numbers render in
+ * this stack so digits align in fixed-width columns. */
+.font-mono {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+}
+
+/* Typography roles (the phase 42 UI spec "Typography" — 4 sizes, 2 weights). */
+.text-label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.text-body {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.text-heading {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.text-display {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Control-button and segmented-control affordance (46-UAT test 5, gap 2; WCAG 1.4.11
+ * Non-text Contrast). The bare inline style every /alerts button used to carry —
+ * `border: 1px solid var(--border)` — is ~1.3:1 against --background, well under the 3:1 floor,
+ * and the sort control's active state existed only as `aria-pressed`, which no CSS styled. Every
+ * /alerts control button (46-11), the pin trigger/picker (46-11), and the /alert/:id Retry and
+ * Withdraw… (46-13) move onto this class. Do not change --border itself — it stays correct for
+ * card outlines, used in 30+ other places. */
+.control-button {
+  min-height: 44px;
+  min-width: 44px;
+  background: transparent;
+  border: 1px solid var(--muted-foreground);
+  border-radius: 6px;
+  color: var(--foreground);
+  cursor: pointer;
+  padding: 0 var(--space-sm);
+  font-family: inherit;
+}
+
+.control-button:hover {
+  background: var(--card-hover);
+}
+
+.control-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Inverted foreground/background pair, not --primary: the UI-SPEC's focal-point rule reserves
+ * --primary for "Open alert →" and the two header links, and white on the dark theme's #3b82f6
+ * is only ~3.7:1, below the 4.5:1 floor for 12px text-label buttons. */
+.control-button[aria-pressed="true"] {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.segmented {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.segmented > .control-button {
+  border-radius: 0;
+}
+
+.segmented > .control-button:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.segmented > .control-button:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.segmented > .control-button + .control-button {
+  border-left-width: 0;
+}
+
+/* The /alerts P_c range fields (46-12, 46-UAT test 3): the native number-input spinner defaults
+ * to a step of 1 and is the unstyled browser glyph, well under the 44x44 hit target. The explicit
+ * .control-button −/+ steppers next to the input replace it. Scoped to .pc-bound-input only — the
+ * Graph page's Resolution field reuses tool_rail::number_field_f64 and is out of scope. */
+.pc-bound-input::-webkit-inner-spin-button,
+.pc-bound-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pc-bound-input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}

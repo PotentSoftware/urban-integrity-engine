@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "source": "Phase 22 PROP-05 — OCOD country-of-incorporation canonicalisation",
+    "generated": "2026-06-14",
+    "update_cadence": "As new OCOD country spellings are observed",
+    "note": "Maps canonical jurisdiction name -> list of raw variants. Lookup is case- and whitespace-insensitive (input is trimmed, uppercased, and internal whitespace collapsed before matching). Unknown strings are NEVER dropped — canonicalise_country returns the trimmed original on a miss (PROP-05 Pitfall-2 guard). Seed list prioritises high-value OCOD offshore jurisdictions."
+  },
+  "British Virgin Islands": [
+    "BVI",
+    "B.V.I.",
+    "BR VIRGIN ISLANDS",
+    "BR. VIRGIN IS.",
+    "BRITISH VIRGIN ISLANDS",
+    "VIRGIN ISLANDS BRITISH",
+    "VIRGIN ISLANDS, BRITISH"
+  ],
+  "Jersey": ["JERSEY", "JE"],
+  "Guernsey": ["GUERNSEY", "GG", "BAILIWICK OF GUERNSEY"],
+  "Isle of Man": ["ISLE OF MAN", "IOM", "IM"],
+  "Cayman Islands": ["CAYMAN ISLANDS", "CAYMAN IS.", "CAYMAN", "KY"],
+  "Bermuda": ["BERMUDA", "BM"],
+  "Gibraltar": ["GIBRALTAR", "GI"],
+  "Panama": ["PANAMA", "PA", "REPUBLIC OF PANAMA"],
+  "Seychelles": ["SEYCHELLES", "SC", "REPUBLIC OF SEYCHELLES"],
+  "Luxembourg": ["LUXEMBOURG", "LU", "GRAND DUCHY OF LUXEMBOURG"],
+  "Cyprus": ["CYPRUS", "CY", "REPUBLIC OF CYPRUS"],
+  "Hong Kong": ["HONG KONG", "HK", "HONG KONG SAR"],
+  "United Arab Emirates": ["UNITED ARAB EMIRATES", "UAE", "U.A.E."],
+  "United States": [
+    "UNITED STATES",
+    "UNITED STATES OF AMERICA",
+    "USA",
+    "U.S.A.",
+    "US",
+    "U.S."
+  ]
+}

@@ -1,0 +1,59 @@
+[package]
+name = "urban-integrity-core"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+urban-integrity-schema = { path = "../schema" }
+# The `Provenance` wire contract (plan 45-01) that every entity-profile row type now carries
+# (PIV-03, plan 45-04). This edge runs core -> workbench-dto, never the reverse: workbench-dto's
+# only dependency is `serde`, and `scripts/check-wasm-boundary.sh` guards ITS dependency graph,
+# not its dependents. Defining a second `Provenance` in core instead would give a producer and a
+# renderer two spellings of one contract to drift apart.
+urban-integrity-workbench-dto = { path = "../workbench-dto" }
+config = { workspace = true }
+dotenv = { workspace = true }
+reqwest = { version = "0.12", features = ["stream"] }
+tokio-util = { version = "0.7", features = ["io"] }
+futures = "0.3"
+async-trait = "0.1"
+tracing-subscriber = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+sha2 = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+dashmap = { workspace = true }
+arc-swap = { workspace = true }
+crossbeam-channel = { workspace = true }
+bincode = { workspace = true }
+rayon = { workspace = true }
+parking_lot = { workspace = true }
+petgraph = { workspace = true }
+chrono = { workspace = true }
+smallvec = { workspace = true }
+fxhash = { workspace = true }
+surrealdb = { workspace = true }
+async-graphql = { version = "7", default-features = false, features = ["chrono"] }
+
+[dev-dependencies]
+urban-integrity-test-support = { path = "../test-support" }
+urban-integrity-detector = { path = "../detector" }
+urban-integrity-schema = { path = "../schema" }
+tempfile = "3"
+criterion = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+uuid = { workspace = true }
+serde_json = { workspace = true }
+
+[[bench]]
+name = "macro_bench"
+harness = false
+
+[[bench]]
+name = "concurrent_readers"
+harness = false

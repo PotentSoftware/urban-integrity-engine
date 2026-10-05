@@ -1,0 +1,21 @@
+[package]
+name = "urban-integrity-probe"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+urban-integrity-schema = { path = "../schema" }
+urban-integrity-core = { path = "../core" }
+urban-integrity-enricher = { path = "../enricher" }
+surrealdb = { workspace = true }
+async-trait = "0.1.89"
+anyhow = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+regex = "1"
+
+[dev-dependencies]
+urban-integrity-test-support = { path = "../test-support" }
+tokio = { workspace = true }

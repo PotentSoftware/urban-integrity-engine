@@ -1,0 +1,101 @@
+# abbreviations-allowlist.txt — tokens exempt from scripts/check-abbreviations.sh (NAV-04, D-04).
+#
+# check-abbreviations.sh extracts every 2-to-6-letter all-caps token found inside a Rust string
+# literal under crates/workbench-web/src and requires each one to be either (a) a genuine
+# abbreviation defined in docs/abbreviations.md's glossary sections, or (b) listed here. A token
+# lands here for one of two reasons:
+#
+#   1. It is not really an abbreviation at all — it's a plain English word, verdict label, or
+#      test fixture that happens to be all-caps and 2-6 letters (e.g. "OK").
+#   2. It IS a genuine abbreviation, defined in docs/abbreviations.md, but the guard's simple
+#      awk-based glossary extraction (`\*\*[A-Z0-9]{2,6}\*\*`) does not catch it because the
+#      glossary entry is a compound token (e.g. "HTTP/HTTPS") rather than a bare `**TOKEN**`.
+#
+# One token per line. Blank lines and lines starting with '#' are ignored.
+
+# Not an abbreviation — a generic acknowledgement word.
+OK
+
+# Verdict-badge vocabulary (crates/workbench-web/src/verdict_badge.rs) — plain English words used
+# as verdict labels, not abbreviations needing a glossary entry (the phase 42 UI spec "Verdict badge
+# contract").
+CLEAR
+HIT
+WEAK
+DATA
+GAP
+ORACLE
+
+# theme.rs test fixture literal ("DARK") — a Theme variant name, not an abbreviation.
+DARK
+
+# app.rs comment text ("Phase NN") — inside a `//` comment, not a real Rust string literal; the
+# guard's naive grep over raw file text cannot distinguish comments from string literals.
+NN
+
+# glossary.rs's own D-25 negative test (`lookup("PRB").is_none()`) — PRB is a v7.0
+# requirement-category-code family deliberately excluded from the parsed glossary; the literal
+# proves the exclusion, it is not user-facing UI text.
+PRB
+
+# Genuine abbreviation (Architecture & engineering: "HTTP/HTTPS"), missed by the guard's
+# bare-`**TOKEN**` glossary extraction because the real entry is a compound "HTTP/HTTPS" token.
+HTTP
+
+# abbr.rs's own defensive-fallback negative test (`abbr_expansion_text("ZZQX")` returns `None`,
+# per this plan's <behavior> spec) — ZZQX is a deliberately-nonexistent token proving the "never
+# fabricate an expansion for an unknown token" fallback, not user-facing UI text.
+ZZQX
+
+# The `GB-COH:` EntityId scheme prefix, appearing in graph_page.rs's deep-link test literals
+# (`"GB-COH:99000001"`). It IS a genuine glossary entry — docs/abbreviations.md's "Entity-ID
+# prefixes (graph node keys)" section defines `**GB-COH:**` — but the guard's bare-`**TOKEN**`
+# extraction cannot see it, for the same compound-token reason as HTTP above. Two lines because
+# the guard tokenises on the hyphen.
+GB
+COH
+
+# The `LOC:` and `PA:` EntityId scheme prefixes, appearing in the entity profile's path-encoding
+# test and in its fixture's OSINT-link target (`"LOC:AB101JB:…"`, `"PA:example-party"`). Both ARE
+# genuine glossary entries — docs/abbreviations.md's "Entity-ID prefixes (graph node keys)" section
+# defines `**LOC:**` and `**PA:**` — but the guard's bare-`**TOKEN**` extraction cannot see a
+# prefix whose glossary form carries its trailing colon, the same compound-token reason as GB-COH
+# above.
+LOC
+PA
+
+# The OSINT-alert severity band (`"CRITICAL"` / `"HIGH"` / `"MEDIUM"`), derived server-side from
+# the risk score and carried verbatim on `OsintAlertRowView`. A plain English word used as a label,
+# like the verdict vocabulary above — not an abbreviation needing a glossary entry.
+HIGH
+
+# The `CF-PARTY:` EntityId scheme prefix, appearing in plan 45-11's pivot-namespace guard and its
+# test: the Contracts Finder buyer/supplier party namespace (4,668 of them in the live analysis's
+# projected entity table), which is a `NodeWeight::Entity` and must NOT be swallowed by the `CF:`
+# contract prefix. The guard tokenises on the hyphen, so the `PARTY` half needs its own line for
+# the same compound-token reason as GB-COH and LOC above. `CF` is already covered by the entry
+# further up.
+PARTY
+
+# "SPA" as in single-page application — the client-side-routing fallback `crates/workbench`'s
+# `is_spa_route` implements, named in `profile/pivot.rs`'s doc comment explaining why an entity id's
+# dot must be percent-encoded. A Rust doc comment about the server's routing, never rendered UI
+# copy; the same word is used freely in `crates/workbench/src/assets.rs`, which this guard does not
+# scan.
+SPA
+
+# The `GB-MUT:` EntityId scheme prefix, appearing in plan 45-11's pivot-history chain fixture: the
+# FCA Mutuals Public Register namespace (32,407 of them in the live analysis's projected entity
+# table, its largest). It IS a genuine glossary entry — docs/abbreviations.md's "Entity-ID prefixes
+# (graph node keys)" section defines `**GB-MUT:**` — but the guard's bare-`**TOKEN**` extraction
+# cannot see a prefix whose glossary form carries its trailing colon, the same compound-token
+# reason as GB-COH, LOC and PA above. `GB` is already covered by the entry further up.
+MUT
+
+# The `OFF:` EntityId scheme prefix — Officer (company director/officer). It IS a genuine glossary
+# entry: docs/abbreviations.md's "Entity-ID prefixes (graph node keys)" section defines `**OFF:**`.
+# The guard's bare-`**TOKEN**` extraction cannot see a prefix whose glossary form carries its
+# trailing colon, the same compound-token reason as GB-COH, LOC, PA, PARTY and MUT above. It
+# appears in plan 45-13's cluster-collapse fixture, where a high-degree cluster of officers hangs
+# off one contract — the shape the glyph exists for.
+OFF

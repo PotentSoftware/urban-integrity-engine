@@ -1,0 +1,9 @@
+[package]
+name = "urban-integrity-stats"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+urban-integrity-schema = { path = "../schema" }
+urban-integrity-core = { path = "../core" }

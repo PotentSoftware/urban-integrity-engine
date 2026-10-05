@@ -1,0 +1,49 @@
+[Unit]
+Description=UrbanIntegrity demo — analyst workbench (fixture corpus only)
+After=urban-demo-surreal.service
+Requires=urban-demo-surreal.service
+
+[Service]
+Type=simple
+User=urbandemo
+Group=urbandemo
+WorkingDirectory=/opt/urban-demo
+
+EnvironmentFile=/etc/urban-demo/surreal.env
+EnvironmentFile=/etc/urban-demo/workbench.env
+
+# Binds loopback only — Caddy terminates TLS and enforces basic auth in front.
+# The bind address is also set in config.toml; the flag wins and is stated here
+# so a config edit cannot silently expose the port.
+ExecStart=/opt/urban-demo/bin/urban-integrity-cli \
+    --analysis ${DEMO_ANALYSIS} \
+    workbench --bind 127.0.0.1:8090
+
+Restart=on-failure
+RestartSec=5
+
+# The workbench replays the corpus into memory at boot. On the fixture that is
+# small and fast; the cap is here so a mistake (a live corpus finding its way
+# onto this box) fails loudly against the limit instead of taking the host down.
+MemoryHigh=1536M
+MemoryMax=2G
+OOMPolicy=stop
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadWritePaths=/opt/urban-demo/data
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

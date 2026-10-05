@@ -1,0 +1,20 @@
+# Pinned toolchain — single source of truth for local dev AND CI.
+#
+# Why pin: clippy's lint set changes between releases. CI runs the workspace
+# clippy gate (-D warnings); if a contributor's local stable is older/newer than
+# the runner's, `cargo clippy` passes locally but fails in CI (or vice versa).
+# This happened on 2026-06-20: local 1.90.0 missed unnecessary_sort_by /
+# useless_vec / collapsible_match that 1.96.0 flags. Pinning ends that drift.
+#
+# rustup auto-installs this version, with the listed components, on the first
+# cargo/rustc invocation in this workspace — including on GitHub runners.
+# Bump deliberately (and re-run the clippy gate) rather than tracking `stable`.
+[toolchain]
+channel = "1.96.0"
+components = ["clippy", "rustfmt"]
+profile = "minimal"
+# wasm32-unknown-unknown: needed by the workbench frontend crates (Phase 42+) to compile to
+# WebAssembly. rustup auto-installs it via the same mechanism as `components`, on the first
+# cargo/rustc invocation in this workspace — including on GitHub runners — so no separate
+# `rustup target add` step is required in CI or local dev.
+targets = ["wasm32-unknown-unknown"]

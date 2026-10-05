@@ -1,0 +1,9 @@
+# Trunk build configuration for the analyst workbench frontend (Phase 42, WBX-01/D-14).
+#
+# `dist` is relative to this crate's directory and lands DIRECTLY in `crates/workbench/dist/` —
+# not `crates/workbench-web/dist/` — because plan 42-05's `rust-embed` folder attribute reads
+# from there. This avoids a separate copy step between the Trunk build and the native binary's
+# embedded-asset bake.
+[build]
+target = "index.html"
+dist = "../workbench/dist"

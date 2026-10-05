@@ -1,0 +1,35 @@
+# Formation-agent / virtual-office postcodes — AddressCluster suppression list.
+#
+# Normalised UK postcodes (uppercase, no spaces). Dozens of unrelated companies
+# register at these addresses as a legitimate paid company-formation / registered-
+# office service, so co-location there is NOT a shell-company signal. The
+# AddressCluster detector skips any cluster whose Location sits at one of these
+# postcodes (matched against the LOC:{postcode}:{house} node id).
+#
+# Format: one postcode per line. Blank lines and text after `#` are ignored.
+# Whitespace and case are normalised on load, so "wc2h 9jq" == "WC2H9JQ".
+#
+# CURATION POLICY (load-bearing — read before editing):
+#   * Exact match only. Never fuzzy, never partial — this mirrors the app-wide
+#     exact-match-only policy.
+#   * Each entry permanently suppresses fraud alerts at that postcode. Under-
+#     suppressing (a noisy false alert) is far safer than over-suppressing (a
+#     hidden real cluster). When in doubt, LEAVE IT OUT.
+#   * Only add a postcode you can confirm is a formation-agent / virtual-office
+#     building — not merely a shared or serviced office with some co-tenants.
+#   * Do NOT add by building name. "International House" alone names 7 distinct
+#     real buildings in different cities; a name is not an address.
+#   * The Companies House default-address placeholder is handled separately in
+#     code (by name marker, across all registrar postcodes) — not listed here.
+#
+# Seeded from addresses observed clustering in live Contracts Finder data.
+
+WC2H9JQ   # 71-75 Shelton Street, Covent Garden
+N17GU     # 20-22 Wenlock Road, Islington
+WC1N3AX   # 27 Old Gloucester Street
+WC1N3XX   # 27 Old Gloucester Street (variant inward code seen in the data)
+W1W5PF    # 167-169 Great Portland Street
+W1W7LT    # 85 Great Portland Street
+EC1V2NX   # 124-128 City Road
+EC2A4NE   # 86-90 Paul Street
+EC2A4NA   # 66 Paul Street

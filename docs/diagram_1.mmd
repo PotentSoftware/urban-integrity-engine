@@ -1,0 +1,115 @@
+flowchart TD
+    %% ── External Data Sources ──────────────────────────────────────────
+    subgraph Sources["External Data Sources"]
+        chApi["Companies House<br/>Streaming API (HTTPS)"]
+        cfApi["Contracts Finder<br/>REST / OCDS polling"]
+        ppSidecar["Planning Sidecar<br/>Scrapling :8765"]
+    end
+
+    %% ── crate: ingestor ────────────────────────────────────────────────
+    subgraph Ingestor["crate · ingestor"]
+        chClient["CH Streaming Client<br/>NDJSON + reconnect cursor"]
+        cfClient["CF REST Poller<br/>OCDS mapper"]
+        planClient["Planning Client<br/>sidecar bridge"]
+        addrNorm["Address Normaliser"]
+    end
+
+    %% ── crate: core · EventPipeline ───────────────────────────────────
+    subgraph CorePipeline["crate · core — EventPipeline"]
+        pipeStages["Validate → Normalise<br/>→ GraphMutation"]
+    end
+
+    %% ── crate: core · Graph Engine ────────────────────────────────────
+    subgraph GraphEngine["crate · core — Graph Engine"]
+        coordinator["GraphCoordinator<br/>Tokio event loop"]
+        storage["GraphStorage<br/>DashMap node/edge index"]
+        csrSnap["CsrSnapshot<br/>Arc via ArcSwap (read-only)"]
+        walChan["WAL Channel<br/>crossbeam-channel"]
+    end
+
+    %% ── crate: core · Persistence ─────────────────────────────────────
+    subgraph CorePersist["crate · core — Persistence"]
+        surrWriter["SurrealDB Writer Loop"]
+        checkpt["Checkpoint / Hydrate"]
+    end
+
+    surrealDb[("SurrealDB<br/>ws://localhost:8000")]
+
+    %% ── crate: detector ───────────────────────────────────────────────
+    subgraph Detectors["crate · detector"]
+        phoenix["Phoenix Detector<br/>asset-stripping loop"]
+        cluster["Cluster Detector<br/>shared-address ring"]
+        nepotism["Nepotism Detector<br/>political proximity path"]
+        scoring["Scoring Engine<br/>T-Digest + IMD P_c"]
+        alertCache["AlertCache<br/>LRU · 1 hr TTL"]
+    end
+
+    statsLib["crate · stats<br/>T-Digest normaliser + IMD loader"]
+
+    %% ── crate: api ────────────────────────────────────────────────────
+    subgraph ApiCrate["crate · api"]
+        httpAxum["Axum HTTP :8080<br/>/health · /metrics"]
+        gqlEnd["async-graphql<br/>/graphql · /graphiql"]
+        grpcEnd["tonic gRPC :8081<br/>IntegrityService"]
+    end
+
+    %% ── crate: cli ────────────────────────────────────────────────────
+    subgraph CliCrate["crate · cli"]
+        cliCmd["report · alerts · status<br/>serve · ingest-planning · entity"]
+    end
+
+    ollama["Ollama LLM<br/>localhost:11434 · Gemma4"]
+
+    %% ── Data Flow ─────────────────────────────────────────────────────
+    chApi --> chClient
+    cfApi --> cfClient
+    ppSidecar --> planClient
+
+    chClient --> addrNorm
+    cfClient --> addrNorm
+    planClient --> addrNorm
+
+    addrNorm -->|IngestEvent| pipeStages
+    pipeStages -->|GraphMutation via mpsc| coordinator
+
+    coordinator --> storage
+    coordinator -->|GraphEvent| walChan
+    coordinator -->|bake every N events / T secs| csrSnap
+
+    walChan --> surrWriter
+    surrWriter --> surrealDb
+    checkpt <-->|hydrate on start + persist| surrealDb
+
+    csrSnap -->|snapshot + delta nodes| phoenix
+    csrSnap --> cluster
+    csrSnap --> nepotism
+
+    phoenix --> scoring
+    cluster --> scoring
+    nepotism --> scoring
+    statsLib -->|IMD weights| scoring
+    scoring --> alertCache
+
+    alertCache --> httpAxum
+    alertCache --> gqlEnd
+    alertCache --> grpcEnd
+    storage --> gqlEnd
+    surrealDb --> gqlEnd
+
+    grpcEnd -->|SummarizeAlert| ollama
+
+    cliCmd -->|serve spawns engine| coordinator
+    cliCmd -->|report / alerts / entity queries| surrealDb
+
+    %% ── Styles ────────────────────────────────────────────────────────
+    style Sources fill:#daeef7,stroke:#7ab8d4
+    style Ingestor fill:#daf7da,stroke:#7ad47a
+    style CorePipeline fill:#f7f7da,stroke:#c8c87a
+    style GraphEngine fill:#eedaf7,stroke:#b07ad4
+    style CorePersist fill:#f7e4da,stroke:#d4987a
+    style Detectors fill:#fff0da,stroke:#d4b07a
+    style ApiCrate fill:#dae4f7,stroke:#7a98d4
+    style CliCrate fill:#eef7ee,stroke:#7ab07a
+    style surrealDb fill:#f5f5f5,stroke:#999
+    style statsLib fill:#f5f5dc,stroke:#c8c87a
+    style ollama fill:#fce8fc,stroke:#c87ac8

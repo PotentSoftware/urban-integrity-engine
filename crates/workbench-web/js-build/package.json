@@ -1,0 +1,15 @@
+{
+  "name": "workbench-cosmograph-shim-build",
+  "private": true,
+  "version": "1.0.0",
+  "description": "One-shot local build tool that bundles @cosmograph/cosmograph into a vendored, pinned ESM shim at crates/workbench-web/js/cosmograph-shim.js (Phase 42, D-16/D-17/WBX-07). Not a Cargo concern, not part of the normal cargo build/test/clippy path. Re-run only as an explicit, reviewed upgrade step: `npm install && npx esbuild cosmograph-shim-src.js --bundle --format=esm --outfile=../js/cosmograph-shim.js`.",
+  "scripts": {
+    "build": "esbuild cosmograph-shim-src.js --bundle --format=esm --outfile=../js/cosmograph-shim.js"
+  },
+  "dependencies": {
+    "@cosmograph/cosmograph": "2.5.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

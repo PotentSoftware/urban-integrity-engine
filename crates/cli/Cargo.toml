@@ -1,0 +1,50 @@
+[package]
+name = "urban-integrity-cli"
+license.workspace = true
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+urban-integrity-schema = { path = "../schema" }
+urban-integrity-core = { path = "../core" }
+urban-integrity-enricher = { path = "../enricher" }
+urban-integrity-ingestor = { path = "../ingestor" }
+urban-integrity-stats = { path = "../stats" }
+urban-integrity-api = { path = "../api" }
+urban-integrity-detector = { path = "../detector" }
+urban-integrity-probe = { path = "../probe" }
+urban-integrity-workbench = { path = "../workbench" }
+# Normal (not dev) dep: `fixture seed --planted` writes the planted fixture from a shipped
+# code path, guarded by the analysis row's `fixture` flag.
+urban-integrity-test-support = { path = "../test-support" }
+
+# CLI framework
+clap = { version = "4", features = ["derive", "env"] }
+
+# Terminal output
+comfy-table = "7"
+console = "0.15"
+
+# Async runtime & utils
+anyhow = { workspace = true }
+async-trait = "0.1"
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+surrealdb = { workspace = true }
+reqwest = { version = "0.12", features = ["json"] }
+petgraph = { workspace = true }
+uuid = { workspace = true }
+sha2 = { workspace = true }
+regex = "1"
+
+[dev-dependencies]
+urban-integrity-test-support = { path = "../test-support" }
+# The wire types the toy-analysis chain test posts to and decodes from the workbench HTTP API.
+urban-integrity-workbench-dto = { path = "../workbench-dto" }
+tempfile = "3.27.0"
+serde_json = { workspace = true }
+comfy-table = "7"

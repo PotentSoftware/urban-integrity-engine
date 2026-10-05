@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UrbanIntegrity Engine — Workbench</title>
+    <link data-trunk rel="css" href="style/tokens.css" />
+    <script>
+      // Flash-of-wrong-theme guard (D-11, UI-SPEC "Theme toggle"): resolve the effective theme
+      // BEFORE Leptos mounts / first paint, so the page never flashes the wrong theme while the
+      // wasm bundle loads. Mirrors theme.rs's own resolution order: an explicit stored
+      // preference wins; with no stored preference (or an unrecognised value — the closed
+      // 3-variant enum in theme.rs, T-42-06), fall through to system preference; "system" with
+      // dark preference (or no matchMedia support) leaves the class unset, since :root is the
+      // dark-default theme in tokens.css and .light is the override.
+      (function () {
+        try {
+          var stored = window.localStorage.getItem("workbench-theme");
+          var isLight;
+          if (stored === "light") {
+            isLight = true;
+          } else if (stored === "dark") {
+            isLight = false;
+          } else {
+            // "system", unset, or any unrecognised stored value — resolve from OS preference.
+            isLight = !window.matchMedia("(prefers-color-scheme: dark)").matches;
+          }
+          if (isLight) {
+            document.documentElement.className = "light";
+          }
+        } catch (e) {
+          // localStorage/matchMedia unavailable — leave the dark default in place rather than
+          // fail the page load over a theme preference.
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
