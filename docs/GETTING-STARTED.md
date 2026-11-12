@@ -53,6 +53,11 @@ command at a time** — and count `scripts/toy-analysis.sh` (several `cargo run`
 
 ### A1. Install the OS prerequisites
 
+`scripts/check-prereqs.sh` checks everything in this step and prints the install command for
+whatever is missing on your platform. Run it after cloning, and again whenever a build or a
+database test behaves oddly — a missing SurrealDB does **not** fail `cargo build` or `cargo test`
+(the DB-gated tests skip silently), so nothing else will tell you it is absent.
+
 | Prerequisite | Needed for | Source of truth |
 |--------------|------------|-----------------|
 | C toolchain (`gcc`/`cc`, `make`) | Native build scripts (`aws-lc-sys`, `zstd-sys`, `ring`) | `Cargo.lock` |
@@ -80,6 +85,12 @@ sudo apt-get install -y build-essential pkg-config libssl-dev protobuf-compiler 
 
 ```bash
 sudo dnf install -y gcc gcc-c++ make pkgconf-pkg-config openssl-devel protobuf-compiler curl git python3
+```
+
+**Arch Linux** (and derivatives such as Omarchy, Manjaro, EndeavourOS):
+
+```bash
+sudo pacman -S --needed base-devel pkgconf openssl protobuf curl git python
 ```
 
 **macOS:** install the Xcode command-line tools and `protoc`. OpenSSL is not needed — `native-tls`

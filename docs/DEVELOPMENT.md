@@ -176,6 +176,7 @@ urban-integrity/
 │   ├── check-abbreviations.sh # CI guard: workbench-web abbreviations are glossed or allowlisted
 │   ├── abbreviations-allowlist.txt   # Allowlist read by check-abbreviations.sh
 │   ├── check-shim-drift.sh    # CI guard: vendored Cosmograph shim matches its source bundle
+│   ├── check-prereqs.sh       # Reports missing OS prerequisites (protoc, SurrealDB pin, …) + install commands
 │   ├── check.sh               # One-shot local CI gate (fmt, clippy, tests — mirrors ci.yml)
 │   ├── status.sh              # Read-only "where are we?" snapshot (commits, findings, worklog)
 │   ├── report.sh              # End-to-end report runner (wraps `cargo run -p urban-integrity-cli`)
