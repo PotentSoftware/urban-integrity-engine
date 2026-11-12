@@ -7,7 +7,7 @@
 # failure short-circuits and clippy never runs.
 #
 # Usage:
-#   scripts/check.sh              # fmt --check, clippy -D warnings, workspace tests
+#   scripts/check.sh              # prerequisites, fmt --check, clippy -D warnings, workspace tests
 #   scripts/check.sh --fix        # run `cargo fmt --all` first, then the gates
 #   scripts/check.sh --db         # also run the SurrealDB-gated suite (URBAN_DB_TESTS=1)
 #   scripts/check.sh --fix --db
@@ -63,6 +63,15 @@ echo "UrbanIntegrity local CI gate — $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee "$L
 if $FIX; then
   echo -e "${YELLOW}--fix: applying cargo fmt --all${RESET}" | tee -a "$LOG"
   cargo fmt --all 2>&1 | tee -a "$LOG" || true
+fi
+
+# Prerequisites first, so a missing protoc or SurrealDB is named up front instead of
+# surfacing as a build-script error (or, for SurrealDB, as DB tests that skip silently).
+# SurrealDB is only required when --db asks for the gated suite.
+if $RUN_DB; then
+  run "prerequisites"  "$SCRIPT_DIR/check-prereqs.sh"
+else
+  run "prerequisites (build only)"  "$SCRIPT_DIR/check-prereqs.sh" --build-only
 fi
 
 run "fmt (check)"   cargo fmt --all --check

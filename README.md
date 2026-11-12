@@ -419,7 +419,8 @@ clean machine** — OS packages, toolchain, build, SurrealDB, a first run, tests
 short version (Linux; macOS and WSL work too, see GETTING-STARTED step A4), needing **no API keys and no data**:
 
 ```bash
-# 0. Prerequisites (Debian/Ubuntu; see GETTING-STARTED for Fedora/macOS and for what each is for)
+# 0. Prerequisites (Debian/Ubuntu; see GETTING-STARTED for Fedora/Arch/macOS and for what each is for).
+#    After cloning, `scripts/check-prereqs.sh` reports anything still missing and how to install it.
 sudo apt-get install -y build-essential pkg-config libssl-dev protobuf-compiler curl git
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 curl -sSf https://install.surrealdb.com | sh -s -- --version v3.1.0-beta.2   # → ~/.surrealdb/surreal
@@ -1274,6 +1275,7 @@ There is deliberately **no default**. SurrealDB creates a database on first writ
 | `surreal-guard.sh` | Interactive-shell guard that intercepts a bare `surreal start` and reroutes it through `surreal-start.sh` — prevents reintroducing the surrealkv OOM by reusing old shell history |
 | `surreal-drop-test-ns.sh` | Sweep `test*` namespaces stranded by SIGKILLed test runs, where `NsGuard`'s `Drop` could not fire (dry-run by default; `--apply` to remove) |
 | `sidecar-start.sh` | Launch the Scrapling planning sidecar (FastAPI/uvicorn on :8765) the same way every time |
+| `check-prereqs.sh` | Reports which OS prerequisites (C toolchain, OpenSSL headers, `protoc`, rustup, SurrealDB at the pinned version) are missing and prints the install command for this platform; `--build-only` skips SurrealDB. Read-only |
 | `check.sh` | One-shot local CI gate mirroring `.github/workflows/ci.yml` — runs fmt `--check`, clippy `-D warnings`, and workspace tests even if an earlier gate fails (`--fix`, `--db` flags) |
 | `status.sh` | Read-only "where are we?" snapshot — recent commits, uncommitted changes, open findings, worklog tail |
 | `rebuild-anglesey.sh` | Maintainer-specific: refresh the maintainers' reference analysis (one Welsh council) **without** re-fetching external data — prunes the derived layer (motif alerts + CCOD orphans) and regenerates it with the fixed detector |
