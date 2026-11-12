@@ -1,6 +1,6 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
-scrapling>=0.3.0
+scrapling[fetchers]>=0.5.1
 firecrawl-py>=1.0.0
 pydantic>=2.0.0
 
