@@ -40,7 +40,7 @@ jobs:
       - name: Cache cargo registry + build
         uses: Swatinem/rust-cache@v2
 
-      # Pinned to the SDK version in workspace deps (=3.1.0-beta.2). The DB-gated
+      # Pinned to the SDK version in workspace deps (=3.1.0-beta.2). The DB-gatedhttps://github.com/PotentSoftware/urban-integrity-engine/pull/1
       # tests connect to ws://localhost:8000 with root/root. Storage is the action's
       # default in-memory engine — fine for the suite, which seeds tiny fixtures in
       # throwaway per-test namespaces (test_<uuid>); the dev/prod engine is RocksDB.
@@ -127,7 +127,7 @@ jobs:
       # is not guaranteed (A4's flagged risk) — fall back to a locked source install
       # rather than let the step fail outright if binstall is missing.
       - name: Install Trunk (pinned)
-        run: cargo binstall trunk --version 0.21.14 --no-confirm || cargo install --locked trunk --version 0.21.14
+        run: cargo binstall trunk --version 0.21.14 --no-confirm || cargo install --locked trunk --version 0.21.14https://github.com/PotentSoftware/urban-integrity-engine/pull/1
 
       # Builds only the crates that are wasm-safe by construction (the DTO crate and,
       # once plan 42-04 lands, the frontend crate). Compiling for the real wasm32
@@ -160,13 +160,13 @@ jobs:
       # `#[doc(hidden)]` planted-graph assembler that fabricates a population without
       # touching SurrealDB, is referenced outside its own definition, the workbench/CLI
       # test trees, and prose.
-      - name: Test-fixture containment guard
+https://github.com/PotentSoftware/urban-integrity-engine/pull/1      - name: Test-fixture containment guard
         run: scripts/check-fixture-not-shipped.sh
 
       # Abbreviation glossary guard (NAV-04, D-04) — fails if a workbench-web string
       # literal contains an unexpanded 2-6 letter all-caps abbreviation that is
       # neither defined in docs/abbreviations.md's glossary sections nor listed in
-      # scripts/abbreviations-allowlist.txt.
+      # scripts/abbreviations-allowlist.txt.https://github.com/PotentSoftware/urban-integrity-engine/pull/1
       - name: Abbreviation glossary guard (NAV-04)
         run: scripts/check-abbreviations.sh
 
